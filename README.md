@@ -2,7 +2,7 @@
 
 This code comes jointly with reference:
 
-> [1] "Gradient Clipping Improves AdaGrad when the Noise Is Heavy-Tailed".
+> Savelii Chezhegov, Yaroslav Klyukin, Andrei Semenov, Aleksandr Beznosikov, Alexander Gasnikov, Samuel Horvath, Martin Takac, Eduard Gorbunov. "Gradient Clipping Improves AdaGrad when the Noise Is Heavy-Tailed".
 
 Date:    May 2024
 

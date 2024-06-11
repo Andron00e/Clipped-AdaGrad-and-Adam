@@ -1,4 +1,5 @@
 # Gradient Clipping Improves AdaGrad when the Noise Is Heavy-Tailed
+[![arXiv](https://img.shields.io/badge/arXiv-2401.06766-b31b1b.svg)](https://www.arxiv.org/abs/2406.04443)
 
 This code comes jointly with reference:
 
@@ -42,3 +43,15 @@ When you have picked all the hyperparameters, please run the following scripts i
 4. Finally, run ```visualization.ipynb``` to reproduce the Figures 2, 3, 7, and 8 from our work.
 
 **We believe the details provided are clear enough to reproduce the experimental part of our paper.**
+
+## Cite
+```bib
+@misc{chezhegov2024gradient,
+      title={Gradient Clipping Improves AdaGrad when the Noise Is Heavy-Tailed}, 
+      author={Savelii Chezhegov and Yaroslav Klyukin and Andrei Semenov and Aleksandr Beznosikov and Alexander Gasnikov and Samuel Horváth and Martin Takáč and Eduard Gorbunov},
+      year={2024},
+      eprint={2406.04443},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
+}
+```

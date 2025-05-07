@@ -1,7 +1,7 @@
 import lightning.pytorch as pl
 import torch
 
-from classes.optimizer import AdamClip
+from optimizer import AdamClip
 
 
 class BertClassifaer(pl.LightningModule):

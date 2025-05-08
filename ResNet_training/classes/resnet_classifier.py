@@ -9,21 +9,20 @@ import torch
 
 
 class ResnetClassifier(BertClassifaer):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, model_name, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.model_name = model_name
 
     def configure_optimizers(self):
-        # optimizer_and_scheduler = BertClassifaer.configure_optimizers(self)
-        # optimizer_and_scheduler["lr_scheduler"] = torch.optim.lr_scheduler.CosineAnnealingLR(
-        #     optimizer_and_scheduler["optimizer"], 
-        #     T_max=200
-        # )
-        
-        # return optimizer_and_scheduler
-        optimizer = torch.optim.SGD(self.parameters(), lr=self.opt.lr,
-                      momentum=0.9, weight_decay=5e-4)
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.t_total)
-        return {
-            "optimizer": optimizer,
-            "lr_scheduler": {"scheduler": scheduler, "interval": "step"},
-        }
+        if self.model_name == "resnet18-finetune":
+            optimizer_and_scheduler = BertClassifaer.configure_optimizers(self)
+            return optimizer_and_scheduler
+        else:
+            # return optimizer_and_scheduler
+            optimizer = torch.optim.SGD(self.parameters(), lr=self.opt.lr,
+                        momentum=0.9, weight_decay=5e-4)
+            scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.t_total)
+            return {
+                "optimizer": optimizer,
+                "lr_scheduler": {"scheduler": scheduler, "interval": "step"},
+            }

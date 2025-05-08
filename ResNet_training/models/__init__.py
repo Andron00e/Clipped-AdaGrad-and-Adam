@@ -5,3 +5,5 @@ from .resnet import (
     ResNet101,
     ResNet152,
 )
+
+from .resnet_finetuning import ResNet18ToFinetune

@@ -8,7 +8,10 @@ from pathlib import Path
 import sys
 from classes import ResnetClassifier
 
-from models import ResNet18
+from models import (
+    ResNet18, 
+    ResNet18ToFinetune
+)
 from data import HFImageDataset
 
 from datasets import load_dataset
@@ -25,7 +28,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 import os
 
-@hydra.main(config_path="configs", config_name="config_cifar10", version_base="1.3")
+@hydra.main(config_path="configs", config_name=None, version_base="1.3")
 def main(cfg: DictConfig):
     
     WANDB_PROJECT_NAME = cfg.global_.wandb_project_name
@@ -54,14 +57,17 @@ def main(cfg: DictConfig):
     )
     validation_dataset = HFImageDataset(split="test")
     validation_loader = DataLoader(validation_dataset, batch_size=cfg.train.batch_size)
-
-    resnet18 = ResNet18()
+    
+    if cfg.train.model_name == "resnet18-finetune":
+        resnet18 = ResNet18ToFinetune()
+    else:
+        resnet18 = ResNet18()
 
     criterion = nn.CrossEntropyLoss()
     metric = torchmetrics.Accuracy(task="multiclass", num_classes=cfg.train.num_classes)
     t_total = len(train_loader) * cfg.train.max_epoch
 
-    model = ResnetClassifier(resnet18, criterion, metric, t_total, cfg.opt)
+    model = ResnetClassifier(cfg.train.model_name, resnet18, criterion, metric, t_total, cfg.opt)
     logger = WandbLogger() if cfg.global_.use_wandb else None
 
     trainer = pl.Trainer(

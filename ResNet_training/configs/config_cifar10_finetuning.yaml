@@ -11,7 +11,7 @@ opt:
 
 train:
     num_classes: 10
-    max_epoch: 20
+    max_epoch: 50
     batch_size: 128
     seed: 42
     classifier_dropout: 0.0

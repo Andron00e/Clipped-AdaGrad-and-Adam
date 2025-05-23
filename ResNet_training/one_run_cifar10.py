@@ -14,8 +14,6 @@ from models import (
 )
 from data import HFImageDataset
 
-from datasets import load_dataset
-
 import sys
 curr_path = Path(__file__)
 sys.path.append(str(curr_path.parent.parent / "ALBERT_fine_tuning/functions"))

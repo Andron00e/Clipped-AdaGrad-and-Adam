@@ -24,7 +24,8 @@ class BertClassifaer(pl.LightningModule):
     def on_before_optimizer_step(self, optimizer):
         gradients = []
         for param in self.parameters():
-            gradients.append(param.grad.flatten())
+            gradients.append(param.grad.flatten().clone())
+            param.grad.zero_() # do not want to update the model
         self.weights_grad = torch.cat(gradients, dim=0)
 
     def configure_optimizers(self):

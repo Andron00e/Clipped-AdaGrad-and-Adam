@@ -16,23 +16,30 @@ from models import (
     ResNet18, 
     ResNet18ToFinetune
 )
+from tqdm import tqdm
+import logging
 
-from classes.bert_classifaer_for_tails import BertClassifaer
-from classes.text_dataset import TextDatasetCoLa
+from pathlib import Path
+import sys
+curr_path = Path(__file__)
+sys.path.append(str(curr_path.parent.parent / "ALBERT_fine_tuning/classes"))
+from bert_classifaer_for_tails import BertClassifaer
 
 
 @hydra.main(config_path="configs", config_name=None, version_base="1.3")
 def main(cfg: DictConfig):
+    torch.manual_seed(42)
     
     WANDB_PROJECT_NAME = cfg.global_.wandb_project_name
     WANDB_RUN_NAME = cfg.global_.wandb_run_name
     WANDB_RUN_TAGS = cfg.global_.wandb_run_tags
     SAVE_MODEL_FLG = cfg.global_.save_model_flg
-    SAVE_LOGS_PATH = os.path.join(cfg.global_.save_path, "norms_logs.json")
+    SAVE_NORM_PATH = os.path.join(cfg.global_.save_path_root, WANDB_RUN_NAME, "norms_logs.json")
+    SAVE_LIGHTING_LOGS_PATH = os.path.join(os.path.join(cfg.global_.save_path_root, WANDB_RUN_NAME))
     if not cfg.global_.save_model_path is None:
         SAVE_MODEL_PATH = cfg.global_.save_model_path
     else:
-        SAVE_MODEL_PATH = os.path.join(cfg.global_.save_path, WANDB_RUN_NAME, "model.pth")
+        SAVE_MODEL_PATH = os.path.join(cfg.global_.save_path_root, WANDB_RUN_NAME, "model.pth")
     os.makedirs(os.path.dirname(SAVE_MODEL_PATH), exist_ok=True)
 
     train_dataset = HFImageDataset(split="train")
@@ -59,18 +66,21 @@ def main(cfg: DictConfig):
         opt_dict=cfg.opt,
     )
 
+
     trainer = pl.Trainer(
         max_epochs=1,
         accelerator="gpu",
         devices=[0],
         accumulate_grad_batches=len(train_loader),
+        enable_checkpointing=False,
+        default_root_dir=SAVE_LIGHTING_LOGS_PATH,
     )
 
     trainer.fit(model=model, train_dataloaders=train_loader)
     true_grad = model.weights_grad
     stochastic_norms = []
 
-    for _ in range(1000):
+    for _ in tqdm(range(1000)):
         if cfg.train.model_name == "resnet18-finetune":
             resnet18 = ResNet18ToFinetune()
         else:
@@ -90,9 +100,13 @@ def main(cfg: DictConfig):
             max_epochs=1,
             accelerator="gpu",
             devices=[0],
+            logger=False,
+            enable_checkpointing=False,
+            enable_progress_bar=False,
+            enable_model_summary=False,
         )
 
-        ids = torch.randperm(len(train_dataset.dataset))[: cfg.train.batch_size]
+        ids = torch.randperm(len(train_dataset.dataset))[: cfg.train.batch_size].tolist()
         train_dataset.random_crop(ids)
         rand_loader = DataLoader(train_dataset, batch_size=cfg.train.batch_size)
 
@@ -103,8 +117,8 @@ def main(cfg: DictConfig):
         stochastic_norms.append(stochastic_norm)
 
     result = {"stochastic_norms": stochastic_norms}
-    with open(SAVE_LOGS_PATH, "w") as file:
-        json.dump(result, file)
+    with open(SAVE_NORM_PATH, "w") as file:
+        json.dump(result, file, indent=4)
 
 
 if __name__ == "__main__":

@@ -22,7 +22,7 @@ global_:
     wandb_project_name: "cs459opt"
     wandb_run_name: "cifar-finetuning"
     wandb_run_tags: []
-    save_path: "/scratch/izar/skorokho/cs439opt_scratch"
+    save_path_root: "/scratch/izar/skorokho/cs439opt_scratch"
     save_model_flg: True
     save_model_path: null
     use_wandb: True

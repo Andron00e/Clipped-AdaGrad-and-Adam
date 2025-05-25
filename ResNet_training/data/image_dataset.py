@@ -33,6 +33,7 @@ class HFImageDataset(Dataset):
             ])
 
         self.dataset = load_dataset(dataset_name, split=split)
+        print(f"Dataset of len {len(self.dataset)}")
         self.random_ids = None
         
 

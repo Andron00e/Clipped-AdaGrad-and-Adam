@@ -54,6 +54,7 @@ def main(cfg: DictConfig):
         accelerator="gpu",
         devices=[0],
         accumulate_grad_batches=len(train_loader),
+        enable_checkpointing=False,
     )
 
     trainer.fit(model=model, train_dataloaders=train_loader)
@@ -79,6 +80,9 @@ def main(cfg: DictConfig):
             max_epochs=1,
             accelerator="gpu",
             devices=[0],
+            enable_checkpointing=False,
+            enable_progress_bar=False,
+            enable_model_summary=False,
         )
 
         ids = torch.randperm(len(train_data))[: cfg.train.batch_size]

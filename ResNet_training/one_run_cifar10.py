@@ -28,15 +28,17 @@ import os
 
 @hydra.main(config_path="configs", config_name=None, version_base="1.3")
 def main(cfg: DictConfig):
-    
+    torch.manual_seed(42)
+
     WANDB_PROJECT_NAME = cfg.global_.wandb_project_name
     WANDB_RUN_NAME = cfg.global_.wandb_run_name
     WANDB_RUN_TAGS = cfg.global_.wandb_run_tags
     SAVE_MODEL_FLG = cfg.global_.save_model_flg
+    SAVE_LIGHTING_LOGS_PATH = os.path.join(os.path.join(cfg.global_.save_path_root, WANDB_RUN_NAME))
     if not cfg.global_.save_model_path is None:
         SAVE_MODEL_PATH = cfg.global_.save_model_path
     else:
-        SAVE_MODEL_PATH = os.path.join(cfg.global_.save_path, WANDB_RUN_NAME, "model.pth")
+        SAVE_MODEL_PATH = os.path.join(cfg.global_.save_path_root, WANDB_RUN_NAME, "model.pth")
     os.makedirs(os.path.dirname(SAVE_MODEL_PATH), exist_ok=True)
 
     if cfg.global_.use_wandb:
@@ -74,6 +76,7 @@ def main(cfg: DictConfig):
         devices=[0],
         logger=logger,
         val_check_interval=cfg.train.val_check_interval,
+        default_root_dir=SAVE_LIGHTING_LOGS_PATH,
     )
 
     try:

@@ -2,7 +2,7 @@ import lightning.pytorch as pl
 import torch
 from transformers import get_linear_schedule_with_warmup
 
-from classes.optimizer import AdamClip_Delayed_Etta
+from optimizer import AdamClip_Delayed_Etta
 
 
 class BertClassifaer(pl.LightningModule):
@@ -25,7 +25,7 @@ class BertClassifaer(pl.LightningModule):
         model_ouput = self.clf(**features)
         loss = self.criterion(model_ouput.logits, labels)
 
-        self.log("train/train_loss", loss)
+        self.log("train/train_loss", loss, prog_bar=True)
 
         self.train_loss.append(loss.item())
 
@@ -36,7 +36,7 @@ class BertClassifaer(pl.LightningModule):
         model_ouput = self.clf(**features)
         loss = self.criterion(model_ouput.logits, labels)
 
-        self.log("val/val_loss", loss)
+        self.log("val/val_loss", loss, prog_bar=True)
 
         self.current_val_loss.append(loss.item())
 
@@ -45,7 +45,7 @@ class BertClassifaer(pl.LightningModule):
 
         self.current_val_metric.append(metric.item())
 
-        self.log("val/val_metric", metric.to(torch.float32))
+        self.log("val/val_metric", metric.to(torch.float32), prog_bar=True)
 
     def on_validation_epoch_end(self):
         self.val_loss.append(self.current_val_loss)
@@ -58,12 +58,12 @@ class BertClassifaer(pl.LightningModule):
         model_ouput = self.clf(**features)
         loss = self.criterion(model_ouput.logits, labels)
 
-        self.log("test/test_loss", loss)
+        self.log("test/test_loss", loss, prog_bar=True)
 
         _, predicted = torch.max(model_ouput.logits, 1)
         metric = self.metric(predicted, labels)
 
-        self.log("test/test_metric", metric.to(torch.float32))
+        self.log("test/test_metric", metric.to(torch.float32), prog_bar=True)
 
     def configure_optimizers(self):
         optimizer = AdamClip_Delayed_Etta(

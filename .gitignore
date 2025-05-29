@@ -3,7 +3,6 @@
 lightning_logs
 wandb
 outputs
-models
 logs
 *.jsonl
 *json

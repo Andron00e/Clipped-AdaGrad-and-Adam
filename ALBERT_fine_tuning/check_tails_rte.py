@@ -12,13 +12,13 @@ from torch.utils.data import DataLoader
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 from classes.bert_classifaer_for_tails import BertClassifaer
-from classes.text_dataset import TextDatasetCoLa
+from classes.text_dataset import TextDatasetRTE
 
 MODEL_PATH = "albert-base-v2"
 SAVE_LOGS_PATH = "save_logs_path.json"
 
 
-@hydra.main(config_path="configs", config_name="config_cola", version_base="1.3")
+@hydra.main(config_path="configs", config_name="config_rte", version_base="1.3")
 def main(cfg: DictConfig):
     actual_task = "mnli" if cfg.data.task == "mnli-mm" else cfg.data.task
     dataset = load_dataset("glue", actual_task)
@@ -28,16 +28,17 @@ def main(cfg: DictConfig):
     tokenizer = AutoTokenizer.from_pretrained(cfg.train.model_checkpoint)
     train_data = pd.DataFrame(dataset["train"][:])
 
-    train_dataset = TextDatasetCoLa(train_data, tokenizer)
+    train_dataset = TextDatasetRTE(train_data, tokenizer)
     train_loader = DataLoader(
         train_dataset, shuffle=True, batch_size=cfg.train.batch_size
     )
+
     bert = AutoModelForSequenceClassification.from_pretrained(
         MODEL_PATH, num_labels=num_labels
     )
 
     criterion = nn.CrossEntropyLoss()
-    metric = torchmetrics.MatthewsCorrCoef(task="binary")
+    metric = torchmetrics.Accuracy(task="binary")
     t_total = len(train_loader) * cfg.train.max_epoch
 
     model = BertClassifaer(
@@ -53,10 +54,13 @@ def main(cfg: DictConfig):
         accelerator="gpu",
         devices=[0],
         accumulate_grad_batches=len(train_loader),
+        enable_checkpointing=False,
     )
 
     trainer.fit(model=model, train_dataloaders=train_loader)
+
     true_grad = model.weights_grad
+
     stochastic_norms = []
 
     for _ in range(1000):
@@ -76,10 +80,13 @@ def main(cfg: DictConfig):
             max_epochs=1,
             accelerator="gpu",
             devices=[0],
+            enable_checkpointing=False,
+            enable_progress_bar=False,
+            enable_model_summary=False,
         )
 
         ids = torch.randperm(len(train_data))[: cfg.train.batch_size]
-        rand_dataset = TextDatasetCoLa(train_data.iloc[ids.numpy(), :], tokenizer)
+        rand_dataset = TextDatasetRTE(train_data.iloc[ids.numpy(), :], tokenizer)
 
         rand_loader = DataLoader(rand_dataset, batch_size=cfg.train.batch_size)
 

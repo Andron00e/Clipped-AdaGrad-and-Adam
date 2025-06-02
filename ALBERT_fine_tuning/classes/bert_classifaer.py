@@ -4,6 +4,8 @@ from transformers import get_linear_schedule_with_warmup
 
 from optimizer import AdamClip_Delayed_Etta
 
+from utils import INDEP_LAYER_PER_NAME, get_per_layer_parameters
+
 
 class BertClassifaer(pl.LightningModule):
     def __init__(self, model, criterion, metric, t_total, opt_dict):
@@ -66,8 +68,16 @@ class BertClassifaer(pl.LightningModule):
         self.log("test/test_metric", metric.to(torch.float32), prog_bar=True)
 
     def configure_optimizers(self):
+        if self.opt.clipping == "layerwise":
+            params = get_per_layer_parameters(
+                self,
+                INDEP_LAYER_PER_NAME[self.opt.train.model_name],
+            )
+        else:
+            params = self.parameters()
+
         optimizer = AdamClip_Delayed_Etta(
-            self.parameters(),
+            params,
             lr=self.opt.lr,
             clipping=self.opt.clipping,
             max_grad_norm=self.opt.max_grad_norm,

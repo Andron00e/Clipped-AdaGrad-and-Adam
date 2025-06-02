@@ -2,7 +2,7 @@ import math
 
 import torch
 from torch.optim import Optimizer
-
+import itertools
 
 class AdamClip(Optimizer):
     """
@@ -48,6 +48,10 @@ class AdamClip(Optimizer):
             clipping=clipping,
             max_grad_norm=max_grad_norm,
         )
+
+        self._max_grad_norm = max_grad_norm
+        self._clipping = clipping
+
         super().__init__(params, defaults)
 
     def step(self, closure=None):
@@ -61,17 +65,22 @@ class AdamClip(Optimizer):
         if closure is not None:
             loss = closure()
 
+        if self._clipping == "global":
+            all_params = itertools.chain(el["params"] for el in self.param_groups)
+            torch.nn.utils.clip_grad_norm_(all_params, self._max_grad_norm)
+
         for group in self.param_groups:
+            if group["clipping"] == "layerwise":
+                torch.nn.utils.clip_grad_norm_(group["params"], group["max_grad_norm"])
             for p in group["params"]:
                 if p.grad is None:
                     continue
 
                 if group["clipping"] == "local":
                     torch.nn.utils.clip_grad_norm_(p, group["max_grad_norm"])
-
-                if group["clipping"] == "elementwise":
+                elif group["clipping"] == "elementwise":
                     torch.nn.utils.clip_grad_value_(p, group["max_grad_norm"])
-
+                
                 grad = p.grad.data
 
                 if grad.is_sparse:
@@ -161,6 +170,10 @@ class AdamClip_Delayed_Etta(Optimizer):
             exp_avg_sq_value=exp_avg_sq_value,
             etta=etta,
         )
+
+        self._max_grad_norm = max_grad_norm
+        self._clipping = clipping
+
         super().__init__(params, defaults)
 
     def step(self, closure=None):
@@ -174,15 +187,20 @@ class AdamClip_Delayed_Etta(Optimizer):
         if closure is not None:
             loss = closure()
 
+        if self._clipping == "global":
+            all_params = itertools.chain(el["params"] for el in self.param_groups)
+            torch.nn.utils.clip_grad_norm_(all_params, self._max_grad_norm)
+
         for group in self.param_groups:
+            if group["clipping"] == "layerwise":
+                torch.nn.utils.clip_grad_norm_(group["params"], group["max_grad_norm"])
             for p in group["params"]:
                 if p.grad is None:
                     continue
 
                 if group["clipping"] == "local":
                     torch.nn.utils.clip_grad_norm_(p, group["max_grad_norm"])
-
-                if group["clipping"] == "elementwise":
+                elif group["clipping"] == "elementwise":
                     torch.nn.utils.clip_grad_value_(p, group["max_grad_norm"])
 
                 if p.grad.data.is_sparse:
@@ -264,6 +282,9 @@ class AdagradClip(Optimizer):
             clipping=clipping,
             max_grad_norm=max_grad_norm,
         )
+
+        self._clipping = clipping
+        self._max_grad_norm = max_grad_norm
         super().__init__(params, defaults)
 
     def step(self, closure=None):
@@ -277,15 +298,20 @@ class AdagradClip(Optimizer):
         if closure is not None:
             loss = closure()
 
+        if self._clipping == "global":
+            all_params = itertools.chain(el["params"] for el in self.param_groups)
+            torch.nn.utils.clip_grad_norm_(all_params, self._max_grad_norm)
+
         for group in self.param_groups:
+            if group["clipping"] == "layerwise":
+                torch.nn.utils.clip_grad_norm_(group["params"], group["max_grad_norm"])
             for p in group["params"]:
                 if p.grad is None:
                     continue
 
                 if group["clipping"] == "local":
                     torch.nn.utils.clip_grad_norm_(p, group["max_grad_norm"])
-
-                if group["clipping"] == "elementwise":
+                elif group["clipping"] == "elementwise":
                     torch.nn.utils.clip_grad_value_(p, group["max_grad_norm"])
 
                 grad = p.grad.data
@@ -353,6 +379,10 @@ class AdaGradClip_Delayed_Etta(Optimizer):
             etta=etta,
             exp_avg_sq_value=exp_avg_sq_value,
         )
+
+        self._clipping = clipping
+        self._max_grad_norm = max_grad_norm
+
         super().__init__(params, defaults)
 
     def step(self, closure=None):
@@ -365,11 +395,13 @@ class AdaGradClip_Delayed_Etta(Optimizer):
         if closure is not None:
             loss = closure()
 
+        if self._clipping == "global":
+            all_params = itertools.chain(el["params"] for el in self.param_groups)
+            torch.nn.utils.clip_grad_norm_(all_params, self._max_grad_norm)
+
         for group in self.param_groups:
-
-            if group["clipping"] == "global":
+            if group["clipping"] == "layerwise":
                 torch.nn.utils.clip_grad_norm_(group["params"], group["max_grad_norm"])
-
             for p in group["params"]:
 
                 if p.grad is None:
@@ -377,8 +409,7 @@ class AdaGradClip_Delayed_Etta(Optimizer):
 
                 if group["clipping"] == "local":
                     torch.nn.utils.clip_grad_norm_(p, group["max_grad_norm"])
-
-                if group["clipping"] == "elementwise":
+                elif group["clipping"] == "elementwise":
                     torch.nn.utils.clip_grad_value_(p, group["max_grad_norm"])
 
                 if p.grad.data.is_sparse:

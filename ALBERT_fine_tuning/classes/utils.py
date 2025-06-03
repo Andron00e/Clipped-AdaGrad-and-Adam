@@ -33,11 +33,11 @@ def get_per_layer_parameters(
             )
         # otherwise get list of its parameters using recursion 
         else:
-            result.extend(get_layers_parameters(child_module, independent_layer_types))
+            result.extend(get_per_layer_parameters(child_module, independent_layer_types))
     return result
 
 INDEP_LAYER_PER_NAME = {
-    "resnet18-finetuning": [
+    "resnet18-finetune": [
         torchvision.models.resnet.BasicBlock,
     ],
     "bert": [

@@ -58,7 +58,7 @@ def main(cfg: DictConfig):
     validation_dataset = HFImageDataset(split="test")
     validation_loader = DataLoader(validation_dataset, batch_size=cfg.train.batch_size)
     
-    if cfg.train.model_name == "resnet18-finetune":
+    if cfg.opt.model_name == "resnet18-finetune":
         resnet18 = ResNet18ToFinetune()
     else:
         resnet18 = ResNet18()
@@ -67,7 +67,7 @@ def main(cfg: DictConfig):
     metric = torchmetrics.Accuracy(task="multiclass", num_classes=cfg.train.num_classes)
     t_total = len(train_loader) * cfg.train.max_epoch
 
-    model = ResnetClassifier(cfg.train.model_name, resnet18, criterion, metric, t_total, cfg.opt)
+    model = ResnetClassifier(cfg.opt.model_name, resnet18, criterion, metric, t_total, cfg.opt)
     logger = WandbLogger() if cfg.global_.use_wandb else None
 
     trainer = pl.Trainer(

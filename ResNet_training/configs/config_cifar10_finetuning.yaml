@@ -8,6 +8,7 @@ opt:
     max_grad_norm: 1.0
     exp_avg_sq_value: 0.00001
     etta: 1.0
+    model_name: "resnet18-finetune"
 
 train:
     num_classes: 10
@@ -16,7 +17,6 @@ train:
     seed: 42
     classifier_dropout: 0.0
     val_check_interval: 50
-    model_name: "resnet18-finetune"
 
 global_:
     wandb_project_name: "cs459opt"
@@ -25,4 +25,4 @@ global_:
     save_path_root: "/scratch/izar/skorokho/cs439opt_scratch"
     save_model_flg: True
     save_model_path: null
-    use_wandb: True
+    use_wandb: False

@@ -1,9 +1,9 @@
 import lightning.pytorch as pl
 import torch
 
-from optimizer import AdamClip
+from classes.optimizer import AdamClip
 
-from utils import INDEP_LAYER_PER_NAME, get_per_layer_parameters
+from classes.utils import INDEP_LAYER_PER_NAME, get_per_layer_parameters
 
 
 class BertClassifaer(pl.LightningModule):
@@ -34,8 +34,9 @@ class BertClassifaer(pl.LightningModule):
         if self.opt.clipping == "layerwise":
             params = get_per_layer_parameters(
                 self,
-                INDEP_LAYER_PER_NAME[self.opt.train.model_name],
+                INDEP_LAYER_PER_NAME[self.opt.model_name],
             )
+            print("[INFO] Num of independent layers:", len(params))
         else:
             params = self.parameters()
 

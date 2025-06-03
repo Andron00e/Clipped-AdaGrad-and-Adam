@@ -66,7 +66,7 @@ class AdamClip(Optimizer):
             loss = closure()
 
         if self._clipping == "global":
-            all_params = itertools.chain(el["params"] for el in self.param_groups)
+            all_params = [p for el in self.param_groups for p in el["params"]]
             torch.nn.utils.clip_grad_norm_(all_params, self._max_grad_norm)
 
         for group in self.param_groups:
@@ -147,6 +147,7 @@ class AdamClip_Delayed_Etta(Optimizer):
         exp_avg_sq_value=0.00001,
         etta=1.0,
     ):
+        raise RuntimeError("Should not be used")
         if lr < 0.0:
             raise ValueError("Invalid learning rate: {} - should be >= 0.0".format(lr))
         if not 0.0 <= betas[0] < 1.0:
@@ -188,7 +189,7 @@ class AdamClip_Delayed_Etta(Optimizer):
             loss = closure()
 
         if self._clipping == "global":
-            all_params = itertools.chain(el["params"] for el in self.param_groups)
+            all_params = [p for el in self.param_groups for p in el["params"]]
             torch.nn.utils.clip_grad_norm_(all_params, self._max_grad_norm)
 
         for group in self.param_groups:
@@ -271,6 +272,7 @@ class AdagradClip(Optimizer):
         clipping="local",
         max_grad_norm=1.0,
     ):
+        raise RuntimeError("Should not be used")
         if lr < 0.0:
             raise ValueError("Invalid learning rate: {} - should be >= 0.0".format(lr))
         if not 0.0 <= eps:
@@ -299,7 +301,7 @@ class AdagradClip(Optimizer):
             loss = closure()
 
         if self._clipping == "global":
-            all_params = itertools.chain(el["params"] for el in self.param_groups)
+            all_params = [p for el in self.param_groups for p in el["params"]]
             torch.nn.utils.clip_grad_norm_(all_params, self._max_grad_norm)
 
         for group in self.param_groups:
@@ -366,6 +368,7 @@ class AdaGradClip_Delayed_Etta(Optimizer):
         etta=1.0,
         exp_avg_sq_value=0.0001,
     ):
+        raise RuntimeError("Should not be used")
         if lr < 0.0:
             raise ValueError("Invalid learning rate: {} - should be >= 0.0".format(lr))
         if not 0.0 <= eps:
@@ -396,7 +399,7 @@ class AdaGradClip_Delayed_Etta(Optimizer):
             loss = closure()
 
         if self._clipping == "global":
-            all_params = itertools.chain(el["params"] for el in self.param_groups)
+            all_params = [p for el in self.param_groups for p in el["params"]]
             torch.nn.utils.clip_grad_norm_(all_params, self._max_grad_norm)
 
         for group in self.param_groups:

@@ -4,7 +4,7 @@ from pathlib import Path
 curr_path = Path(__file__)
 # print("take from:", str(curr_path.parent.parent.parent / "ALBERT_fine_tuning/classes"))
 sys.path.append(str(curr_path.parent.parent.parent / "ALBERT_fine_tuning/classes"))
-from bert_classifaer import BertClassifaer
+from bert_classifaer_for_tails import BertClassifaer
 import torch
 
 

@@ -13,19 +13,24 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 from classes.bert_classifaer_for_tails import BertClassifaer
 from classes.text_dataset import TextDatasetCoLa
-
-MODEL_PATH = "albert-base-v2"
-SAVE_LOGS_PATH = "save_logs_path.json"
-
+import os
 
 @hydra.main(config_path="configs", config_name="config_cola", version_base="1.3")
 def main(cfg: DictConfig):
+    WANDB_RUN_NAME = cfg.global_.wandb_run_name
+    SAVE_NORM_PATH = os.path.join(cfg.global_.save_path_root, WANDB_RUN_NAME, "norms_logs.json")
+    SAVE_LIGHTING_LOGS_PATH = os.path.join(os.path.join(cfg.global_.save_path_root, WANDB_RUN_NAME))
+    if not cfg.global_.save_model_path is None:
+        SAVE_MODEL_PATH = cfg.global_.save_model_path
+    else:
+        SAVE_MODEL_PATH = os.path.join(cfg.global_.save_path_root, WANDB_RUN_NAME)
+
     actual_task = "mnli" if cfg.data.task == "mnli-mm" else cfg.data.task
     dataset = load_dataset("glue", actual_task)
     num_labels = (
         3 if cfg.data.task.startswith("mnli") else 1 if cfg.data.task == "stsb" else 2
     )
-    tokenizer = AutoTokenizer.from_pretrained(cfg.train.model_checkpoint)
+    tokenizer = AutoTokenizer.from_pretrained(SAVE_MODEL_PATH)
     train_data = pd.DataFrame(dataset["train"][:])
 
     train_dataset = TextDatasetCoLa(train_data, tokenizer)
@@ -33,7 +38,7 @@ def main(cfg: DictConfig):
         train_dataset, shuffle=True, batch_size=cfg.train.batch_size
     )
     bert = AutoModelForSequenceClassification.from_pretrained(
-        MODEL_PATH, num_labels=num_labels
+        SAVE_MODEL_PATH, num_labels=num_labels
     )
 
     criterion = nn.CrossEntropyLoss()
@@ -54,6 +59,7 @@ def main(cfg: DictConfig):
         devices=[0],
         accumulate_grad_batches=len(train_loader),
         enable_checkpointing=False,
+        default_root_dir=SAVE_LIGHTING_LOGS_PATH,
     )
 
     trainer.fit(model=model, train_dataloaders=train_loader)
@@ -62,7 +68,7 @@ def main(cfg: DictConfig):
 
     for _ in range(1000):
         bert = AutoModelForSequenceClassification.from_pretrained(
-            MODEL_PATH, num_labels=num_labels
+            cfg.train.model_checkpoint, num_labels=num_labels
         )
 
         model = BertClassifaer(
@@ -95,7 +101,7 @@ def main(cfg: DictConfig):
 
     result = {"stochastic_norms": stochastic_norms}
     with open(
-        SAVE_LOGS_PATH,
+        SAVE_NORM_PATH,
         "w",
     ) as file:
         json.dump(result, file)

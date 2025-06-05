@@ -19,11 +19,7 @@ from models import (
 from tqdm import tqdm
 import logging
 
-from pathlib import Path
-import sys
-curr_path = Path(__file__)
-sys.path.append(str(curr_path.parent.parent / "ALBERT_fine_tuning/classes"))
-from bert_classifaer_for_tails import BertClassifaer
+from ALBERT_fine_tuning.classes.bert_classifaer_for_tails import BertClassifaer
 
 
 @hydra.main(config_path="configs", config_name=None, version_base="1.3")

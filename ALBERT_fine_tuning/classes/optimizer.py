@@ -169,7 +169,12 @@ class SGDClip(Optimizer):
 
         if self._clipping == "global":
             all_params = [p for el in self.param_groups for p in el["params"]]
+            all_grads = [p.grad.max().item() for p in all_params]
+            print(f"BEFORE: {max(all_grads)}")
             torch.nn.utils.clip_grad_norm_(all_params, self._max_grad_norm)
+            all_grads = [p.grad.max().item() for p in all_params]
+            print(f"AFTER: {max(all_grads)}")
+
 
         for group in self.param_groups:
             if group["clipping"] == "layerwise":

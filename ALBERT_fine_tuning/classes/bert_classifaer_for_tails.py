@@ -16,12 +16,19 @@ class BertClassifaer(pl.LightningModule):
         self.opt = opt_dict
         self.weights_grad = None
 
+        self.train_loss = []
+        self.current_val_loss = []
+        self.current_val_metric = []
+        self.val_loss = []
+        self.val_metric = []
+
     def training_step(self, batch, batch_idx):
         features, labels = batch
         model_ouput = self.clf(**features)
         loss = self.criterion(model_ouput.logits, labels)
 
         self.log("train/train_loss", loss, prog_bar=True)
+        self.train_loss.append(loss.item())
 
         return loss
     
@@ -31,11 +38,19 @@ class BertClassifaer(pl.LightningModule):
         loss = self.criterion(model_ouput.logits, labels)
 
         self.log("val/val_loss", loss, prog_bar=True)
+        self.current_val_loss.append(loss.item())
 
         _, predicted = torch.max(model_ouput.logits, 1)
         metric = self.metric(predicted, labels)
+        self.current_val_metric.append(metric.item())
 
         self.log("val/val_metric", metric.to(torch.float32), prog_bar=True)
+
+    def on_validation_epoch_end(self):
+        self.val_loss.append(self.current_val_loss)
+        self.val_metric.append(self.current_val_metric)
+        self.current_val_loss = []
+        self.current_val_metric = []
 
     def on_before_optimizer_step(self, optimizer):
         gradients = []

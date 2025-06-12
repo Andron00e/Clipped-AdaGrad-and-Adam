@@ -133,3 +133,9 @@ if [[ " $@ " =~ " 3 " ]]; then
         global_.wandb_run_name="sgd-local-0.1" \
         opt.optimizer=sgd opt.lr=1e-2
 fi
+
+# python3 one_run_cifar10.py --config-name resnet_parent \
+#     opt.clipping="none" \
+#     opt.max_grad_norm=10.0 \
+#     global_.wandb_run_name="sgd-none-10.0" \
+#     opt.optimizer=sgd opt.lr=1e-2

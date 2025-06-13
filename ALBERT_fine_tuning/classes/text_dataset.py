@@ -1,50 +1,66 @@
+import torch
 from torch.utils.data import Dataset
 
-
 class TextDatasetCoLa(Dataset):
-    def __init__(self, dataframe, tokenizer):
-        self.x_data = tokenizer(
-            dataframe["sentence"].to_numpy().tolist(),
+    def __init__(self, dataframe, tokenizer, max_length: int = 128):
+        enc = tokenizer(
+            dataframe["sentence"].tolist(),
             padding="max_length",
             truncation=True,
+            max_length=max_length,
             return_tensors="pt",
+            return_token_type_ids=True, 
         )
-        self.y_data = dataframe["label"].to_numpy()
-        self.n_samples = dataframe.shape[0]
+
+        if "token_type_ids" not in enc:
+            batch_size, seq_len = enc["input_ids"].shape
+            enc["token_type_ids"] = torch.zeros((batch_size, seq_len), dtype=torch.long)
+
+        self.encodings = enc
+        self.labels = torch.tensor(dataframe["label"].to_list(), dtype=torch.long)
 
     def __len__(self):
-        return self.n_samples
+        return self.labels.size(0)
 
-    def __getitem__(self, index):
-        x_sample = {
-            "input_ids": self.x_data["input_ids"][index],
-            "token_type_ids": self.x_data["token_type_ids"][index],
-            "attention_mask": self.x_data["attention_mask"][index],
-        }
-        y_sample = self.y_data[index]
-        return x_sample, y_sample
+    def __getitem__(self, idx):
+        return (
+            {
+                "input_ids":       self.encodings["input_ids"][idx],
+                "attention_mask":  self.encodings["attention_mask"][idx],
+                "token_type_ids":  self.encodings["token_type_ids"][idx],
+            },
+            self.labels[idx],
+        )
 
 
 class TextDatasetRTE(Dataset):
-    def __init__(self, dataframe, tokenizer):
-        self.x_data = tokenizer(
-            dataframe["sentence1"].to_numpy().tolist(),
-            dataframe["sentence2"].to_numpy().tolist(),
+    def __init__(self, dataframe, tokenizer, max_length: int = 128):
+        enc = tokenizer(
+            dataframe["sentence1"].tolist(),
+            dataframe["sentence2"].tolist(),
             padding="max_length",
             truncation=True,
+            max_length=max_length,
             return_tensors="pt",
+            return_token_type_ids=True,
         )
-        self.y_data = dataframe["label"].to_numpy()
-        self.n_samples = dataframe.shape[0]
+
+        if "token_type_ids" not in enc:
+            batch_size, seq_len = enc["input_ids"].shape
+            enc["token_type_ids"] = torch.zeros((batch_size, seq_len), dtype=torch.long)
+
+        self.encodings = enc
+        self.labels = torch.tensor(dataframe["label"].to_list(), dtype=torch.long)
 
     def __len__(self):
-        return self.n_samples
+        return self.labels.size(0)
 
-    def __getitem__(self, index):
-        x_sample = {
-            "input_ids": self.x_data["input_ids"][index],
-            "token_type_ids": self.x_data["token_type_ids"][index],
-            "attention_mask": self.x_data["attention_mask"][index],
-        }
-        y_sample = self.y_data[index]
-        return x_sample, y_sample
+    def __getitem__(self, idx):
+        return (
+            {
+                "input_ids":       self.encodings["input_ids"][idx],
+                "attention_mask":  self.encodings["attention_mask"][idx],
+                "token_type_ids":  self.encodings["token_type_ids"][idx],
+            },
+            self.labels[idx],
+        )

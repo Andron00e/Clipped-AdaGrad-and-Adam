@@ -1,0 +1,28 @@
+opt:
+    optimizer: null
+    lr: 1e-3
+    betas: [0.9, 0.999]
+    eps: 1e-8
+    weight_decay: 5e-4
+    correct_bias: false
+    clipping: null
+    max_grad_norm: 1.0
+    exp_avg_sq_value: 0.00001
+    model_name: "resnet18-finetune"
+    do_training: True
+
+train:
+    num_classes: 10
+    max_epoch: 50
+    batch_size: 512
+    seed: 42
+    classifier_dropout: 0.0
+
+global_:
+    wandb_project_name: "cs459opt"
+    wandb_run_name: "cifar-finetuning"
+    wandb_run_tags: []
+    save_path_root: "/scratch/izar/skorokho/cs439opt_scratch/multirun"
+    save_model_flg: True
+    save_model_path: null
+    use_wandb: True

@@ -1,5 +1,6 @@
 import hydra
 import lightning.pytorch as pl
+from lightning.pytorch.callbacks import ModelCheckpoint
 import pandas as pd
 import torchmetrics
 import wandb
@@ -14,10 +15,7 @@ from models import (
 )
 from data import HFImageDataset
 
-import sys
-curr_path = Path(__file__)
-sys.path.append(str(curr_path.parent.parent / "ALBERT_fine_tuning/functions"))
-from reproducibility import set_seed
+from ALBERT_fine_tuning.functions.reproducibility import set_seed
 
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning.loggers import WandbLogger
@@ -58,7 +56,7 @@ def main(cfg: DictConfig):
     validation_dataset = HFImageDataset(split="test")
     validation_loader = DataLoader(validation_dataset, batch_size=cfg.train.batch_size)
     
-    if cfg.train.model_name == "resnet18-finetune":
+    if cfg.opt.model_name == "resnet18-finetune":
         resnet18 = ResNet18ToFinetune()
     else:
         resnet18 = ResNet18()
@@ -67,16 +65,26 @@ def main(cfg: DictConfig):
     metric = torchmetrics.Accuracy(task="multiclass", num_classes=cfg.train.num_classes)
     t_total = len(train_loader) * cfg.train.max_epoch
 
-    model = ResnetClassifier(cfg.train.model_name, resnet18, criterion, metric, t_total, cfg.opt)
+    model = ResnetClassifier(cfg.opt.model_name, resnet18, criterion, metric, t_total, cfg.opt)
     logger = WandbLogger() if cfg.global_.use_wandb else None
+
+    save_strategy = ModelCheckpoint(
+        dirpath=Path(SAVE_MODEL_PATH).parent,
+        monitor='val/val_metric',
+        mode='max',
+        save_top_k=4,
+        every_n_epochs=(cfg.train.max_epoch // 3),
+        save_last=True,
+    )
 
     trainer = pl.Trainer(
         max_epochs=cfg.train.max_epoch,
         accelerator="gpu",
         devices=[0],
         logger=logger,
-        val_check_interval=cfg.train.val_check_interval,
+        check_val_every_n_epoch=1,
         default_root_dir=SAVE_LIGHTING_LOGS_PATH,
+        callbacks=[save_strategy],
     )
 
     try:

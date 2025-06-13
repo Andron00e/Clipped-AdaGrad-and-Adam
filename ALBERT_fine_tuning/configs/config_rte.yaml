@@ -1,4 +1,5 @@
 opt:
+    optimizer: adam
     lr: 0.00001
     betas: [0.9, 0.999]
     eps: 0.000001
@@ -8,6 +9,8 @@ opt:
     max_grad_norm: 1.0
     exp_avg_sq_value: 0.00001
     etta: 1.0
+    model_name: bert
+
 
 train:
     model_checkpoint: albert-base-v2
@@ -19,3 +22,13 @@ train:
 
 data:
     task: rte
+
+global_:
+    wandb_project_name: "cs459opt"
+    wandb_run_name: "rte-finetuning"
+    wandb_run_tags: []
+    save_path_root: "/scratch/izar/skorokho/cs439opt_scratch"
+    save_model_flg: True
+    save_model_path: null
+    use_wandb: False
+    model_name_or_path: albert-base-v2

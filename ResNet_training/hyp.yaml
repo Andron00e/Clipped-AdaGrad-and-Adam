@@ -1,0 +1,16 @@
+sgd:
+    lr: 1e-2
+    norm:
+        local: 1.0 # [1.0, 2.5] is fine
+        global: 5.0 # [5.0, 10.0] is fine
+        elementwise: 0.1 # [0.1, 2.5] is fine
+        layerwise: 2.5 # is best
+    
+adam:
+    lr: 1e-3
+    norm:
+        local: 0.1 # [0.1, 0.5] is fine
+        global: 1.0 #  is the best
+        elementwise: 0.1 # 0.1 is the best
+        layerwise: 2.5 # is best
+    

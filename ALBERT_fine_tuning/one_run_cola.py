@@ -13,17 +13,22 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer
 from classes.bert_classifaer import BertClassifaer
 from classes.text_dataset import TextDatasetCoLa
 from functions.reproducibility import set_seed
-
-WANDB_PROJECT_NAME = "project_name"
-WANDB_RUN_NAME = "run_name"
-WANDB_RUN_TAGS = []
-MODEL_PATH = "albert-base-v2"
-SAVE_MODEL_FLG = False
-SAVE_MODEL_PATH = "model_path"
-
+import os
 
 @hydra.main(config_path="configs", config_name="config_cola", version_base="1.3")
 def main(cfg: DictConfig):
+    WANDB_PROJECT_NAME = cfg.global_.wandb_project_name
+    WANDB_RUN_NAME = cfg.global_.wandb_run_name
+    WANDB_RUN_TAGS = cfg.global_.wandb_run_tags
+    MODEL_PATH = cfg.global_.model_name_or_path
+
+    SAVE_MODEL_FLG = cfg.global_.save_model_flg
+    if not cfg.global_.save_model_path is None:
+        SAVE_MODEL_PATH = cfg.global_.save_model_path
+    else:
+        SAVE_MODEL_PATH = os.path.join(cfg.global_.save_path_root, WANDB_RUN_NAME)
+    os.makedirs(os.path.dirname(SAVE_MODEL_PATH), exist_ok=True)
+
     wandb.init(
         project=WANDB_PROJECT_NAME,
         name=WANDB_RUN_NAME,
@@ -39,7 +44,7 @@ def main(cfg: DictConfig):
     train_data = pd.DataFrame(dataset["train"][:])
     validation_data = pd.DataFrame(dataset["validation"][:])
 
-    tokenizer = AutoTokenizer.from_pretrained(cfg.train.model_checkpoint)
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 
     train_dataset = TextDatasetCoLa(train_data, tokenizer)
     train_loader = DataLoader(
@@ -62,7 +67,7 @@ def main(cfg: DictConfig):
 
     model = BertClassifaer(bert, criterion, metric, t_total, cfg.opt)
 
-    logger = WandbLogger()
+    logger = WandbLogger() if cfg.global_.use_wandb else None
     trainer = pl.Trainer(
         max_epochs=cfg.train.max_epoch,
         accelerator="gpu",
